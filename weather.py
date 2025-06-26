@@ -1,5 +1,8 @@
 import streamlit as st
 import requests
+import csv
+import os
+from datetime import datetime
 
 st.set_page_config(page_title="🌤️ Smart Weather App", layout="centered")
 st.title("🌧️ Rain Prediction Dashboard")
@@ -13,6 +16,8 @@ if city:
 
     if response.status_code == 200:
         data = response.json()
+
+	
 
         # Extract info
         location = data["location"]["name"]
@@ -32,22 +37,38 @@ if city:
         # Normalize condition text
         condition_lower = condition.lower()
 
-        # Smart rain logic
+                # Predict rain level
         if any(word in condition_lower for word in ["torrential", "heavy rain"]) or (humidity > 95 and wind_kph > 30):
-            st.error("🌩️ Heavy rain alert!")
-            st.caption(f"Because: Condition is '{condition}', Humidity is {humidity}%, Wind is {wind_kph} kph")
+            rain_level = "🌩️ Heavy rain alert!"
+            st.error(rain_level)
 
         elif any(word in condition_lower for word in ["moderate rain", "patchy rain"]) or (humidity > 85 and wind_kph > 20):
-            st.warning("🌧️ Moderate rain expected.")
-            st.caption(f"Because: Condition is '{condition}', Humidity is {humidity}%, Wind is {wind_kph} kph")
+            rain_level = "🌧️ Moderate rain expected."
+            st.warning(rain_level)
 
         elif any(word in condition_lower for word in ["light rain", "showers", "drizzle"]) or (humidity > 70 and wind_kph > 15):
-            st.info("🌦️ Light rain or drizzle possible.")
-            st.caption(f"Because: Condition is '{condition}', Humidity is {humidity}%, Wind is {wind_kph} kph")
+            rain_level = "🌦️ Light rain or drizzle possible."
+            st.info(rain_level)
 
         else:
-            st.success("☀️ No rain likely.")
-            st.caption(f"Because: Condition is '{condition}', Humidity is {humidity}%, Wind is {wind_kph} kph")
+            rain_level = "☀️ No rain likely."
+            st.success(rain_level)
 
-    else:
-        st.error("❌ Could not fetch data. Check city name or try again.")
+        # ✅ Now rain_level is guaranteed to be defined
+        st.caption(f"Reason: Condition = '{condition}', Humidity = {humidity}%, Wind = {wind_kph} kph")
+
+        # 🔄 Save to CSV
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        row = [timestamp, location, condition, temp_c, humidity, wind_kph, rain_level]
+
+        csv_file = "daily_weather_log.csv"
+        file_exists = os.path.exists(csv_file)
+
+        with open(csv_file, mode='a', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            if not file_exists:
+                writer.writerow(["Timestamp", "City", "Condition", "Temp (°C)", "Humidity (%)", "Wind (kph)", "Rain Status"])
+            writer.writerow(row)
+
+        st.success("✅ This record has been saved to daily_weather_log.csv")
+
