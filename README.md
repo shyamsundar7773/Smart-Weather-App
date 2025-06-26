@@ -6,7 +6,6 @@ This Streamlit app fetches live weather data from [WeatherAPI](https://smart-wea
 - **Humidity**
 - **Wind speed**
 
-Each prediction is saved daily into a CSV for analysis or future ML training.
 
 ## 🚀 Try it Live
 👉 [Streamlit App Link](https://smart-weather-app-s8h2rwoj8ywtw7foztz2gp.streamlit.app/)  
